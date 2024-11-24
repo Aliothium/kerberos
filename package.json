@@ -1,0 +1,57 @@
+{
+  "name": "kerberos",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "types": "index.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "lint": "eslint src -c eslint.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aliothium/kerberos.git"
+  },
+  "keywords": [
+    "kerberos",
+    "authorization",
+    "authentication",
+    "security",
+    "auth",
+    "policy",
+    "access control",
+    "cerbos",
+    "framework",
+    "schema",
+    "web"
+  ],
+  "author": "Alex Dolid <dolid.sasha@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Aliothium/kerberos/issues"
+  },
+  "homepage": "https://aliothium.com/",
+  "dependencies": {
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@stylistic/eslint-plugin-js": "^2.10.1",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jest": "^28.8.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-promise": "^7.1.0",
+    "eslint-plugin-unicorn": "^56.0.0",
+    "globals": "^15.11.0",
+    "neostandard": "^0.11.7",
+    "prettier": "^3.3.3"
+  }
+}
