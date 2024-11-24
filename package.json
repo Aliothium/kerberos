@@ -1,7 +1,7 @@
 {
   "name": "kerberos",
   "version": "0.0.1",
-  "description": "",
+  "description": "Fast and low overhead authorization framework for JavaScript runtime",
   "main": "index.js",
   "type": "module",
   "types": "index.d.ts",
