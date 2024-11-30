@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { Constants } from '../src/Constants/Constants.js';
+import { Constants } from '../src/Constants/index.js';
 
 const principalMock = {
   id: 'user-123',

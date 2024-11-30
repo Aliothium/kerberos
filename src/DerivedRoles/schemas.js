@@ -1,9 +1,8 @@
 import { z } from 'zod';
 
-import { VariablesSchemaSchema } from '../Variables/schemas.js';
-import { VariablesInstanceSchema } from '../Variables/Variables.js';
-import { ConditionSchemaSchema } from '../Conditions/schemas.js';
-import { ConditionsInstanceSchema } from '../Conditions/Conditions.js';
+import { ConditionSchemaSchema, ConditionsInstanceSchema } from '../Conditions/index.js';
+import { VariablesSchemaSchema, VariablesInstanceSchema } from '../Variables/index.js';
+import { ConstantsInstanceSchema, ConstantsSchemaSchema } from '../Constants/index.js';
 
 export const DerivedRolesDefinitionSchemaSchema = z
   .object({
@@ -15,9 +14,10 @@ export const DerivedRolesDefinitionSchemaSchema = z
 
 export const DerivedRolesSchemaSchema = z
   .object({
-    apiVersion: z.string(),
     name: z.string(),
+    description: z.string().optional(),
     variables: z.union([VariablesSchemaSchema, VariablesInstanceSchema]).optional(),
+    constants: z.union([ConstantsSchemaSchema, ConstantsInstanceSchema]).optional(),
     definitions: z.array(DerivedRolesDefinitionSchemaSchema).nonempty(),
   })
   .strict();

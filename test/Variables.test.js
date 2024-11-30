@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { Variables } from '../src/Variables/Variables.js';
+import { Variables } from '../src/Variables/index.js';
 
 const principalMock = {
   id: 'user-123',

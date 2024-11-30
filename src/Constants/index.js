@@ -1,2 +1,2 @@
-export * from './schemas';
+export * from './schemas.js';
 export * from './Constants.js';

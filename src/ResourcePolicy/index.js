@@ -1,2 +1,2 @@
-export * from './ResourcePolicy';
-export * from './schemas';
+export * from './ResourcePolicy.js';
+export * from './schemas.js';

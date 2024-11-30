@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { Conditions } from '../src/Conditions/Conditions.js';
+import { Conditions } from '../src/Conditions/index.js';
 
 const principalMock = {
   id: 'user-123',
@@ -29,6 +29,9 @@ const resourceMock = {
 const variableMock = {
   isPublished: true,
 };
+const constantsMock = {
+  label: 'Published',
+};
 
 const reqMock = {
   P: principalMock,
@@ -36,7 +39,9 @@ const reqMock = {
   R: resourceMock,
   resource: resourceMock,
   V: variableMock,
-  variable: variableMock,
+  variables: variableMock,
+  C: constantsMock,
+  constants: constantsMock,
 };
 
 describe('Conditions', () => {
@@ -142,6 +147,22 @@ describe('Conditions', () => {
           },
         ],
       },
+    });
+
+    assert.strictEqual(condition.isFulfilled(reqMock), false);
+  });
+
+  it('should match with constants - true case', () => {
+    const condition = new Conditions({
+      match: ({ C }) => C.label === 'Published',
+    });
+
+    assert.strictEqual(condition.isFulfilled(reqMock), true);
+  });
+
+  it('should match with constants - false case', () => {
+    const condition = new Conditions({
+      match: ({ C }) => C.label === 'Unpublished',
     });
 
     assert.strictEqual(condition.isFulfilled(reqMock), false);

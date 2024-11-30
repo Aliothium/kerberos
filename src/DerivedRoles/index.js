@@ -1,2 +1,2 @@
-export * from './DerivedRoles';
-export * from './schemas';
+export * from './DerivedRoles.js';
+export * from './schemas.js';

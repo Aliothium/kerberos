@@ -1,9 +1,11 @@
-// schemas.js
 import { z } from 'zod';
 
-import { RequestWithVariablesSchema } from '../Variables/schemas.js';
+import { RequestWithVariablesSchema } from '../Variables/index.js';
+import { RequestWithConstantsSchema } from '../Constants/index.js';
 
-export const ConditionSingleMatchExprSchema = z.function().args(RequestWithVariablesSchema).returns(z.boolean());
+const RequestSchema = RequestWithVariablesSchema.merge(RequestWithConstantsSchema);
+
+export const ConditionSingleMatchExprSchema = z.function().args(RequestSchema).returns(z.boolean());
 
 export const ConditionMatchSchema = z.lazy(() =>
   z.union([
