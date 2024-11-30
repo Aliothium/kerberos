@@ -1,9 +1,8 @@
 import { z } from 'zod';
 
-import { VariablesSchemaSchema } from '../Variables/schemas.js';
-import { VariablesInstanceSchema } from '../Variables/Variables.js';
-import { ConditionSchemaSchema } from '../Conditions/schemas.js';
-import { ConditionsInstanceSchema } from '../Conditions/Conditions.js';
+import { VariablesSchemaSchema, VariablesInstanceSchema } from '../Variables/index.js';
+import { ConditionSchemaSchema, ConditionsInstanceSchema } from '../Conditions/index.js';
+import { ConstantsSchemaSchema, ConstantsInstanceSchema } from '../Constants/index.js';
 import { ALL_ACTIONS, Effect } from '../schemas.js';
 
 export const RuleSchema = z
@@ -34,13 +33,13 @@ export const ResourcePolicySchemaSchema = z
     resource: z.string(),
     rules: z.array(RuleSchema).nonempty(),
     variables: z.union([VariablesSchemaSchema, VariablesInstanceSchema]).optional(),
+    constants: z.union([ConstantsSchemaSchema, ConstantsInstanceSchema]).optional(),
     importDerivedRoles: z.array(z.string()).optional(),
   })
   .strict();
 
 export const ResourcePolicyRootSchemaSchema = z
   .object({
-    apiVersion: z.string(),
     resourcePolicy: ResourcePolicySchemaSchema,
   })
   .strict();

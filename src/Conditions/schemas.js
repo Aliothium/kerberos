@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { RequestWithVariablesSchema } from '../Variables/index.js';
 import { RequestWithConstantsSchema } from '../Constants/index.js';
 
-const RequestSchema = RequestWithVariablesSchema.merge(RequestWithConstantsSchema);
+const RequestSchema = RequestWithConstantsSchema.merge(RequestWithVariablesSchema);
 
 export const ConditionSingleMatchExprSchema = z.function().args(RequestSchema).returns(z.boolean());
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { ResourcePolicy } from './ResourcePolicy/ResourcePolicy.js';
-import { DerivedRoles } from './DerivedRoles/DerivedRoles.js';
+import { ResourcePolicy } from './ResourcePolicy/index.js';
+import { DerivedRoles } from './DerivedRoles/index.js';
 import { RequestSchema, RequestPrincipalSchema, RequestResourceSchema, Effect } from './schemas.js';
 
 const ResourcePolicyInstanceSchema = z.instanceof(ResourcePolicy);
@@ -18,7 +18,7 @@ const CheckResourcesArgsSchema = z.object({
       z.object({
         resource: RequestResourceSchema,
         actions: z.array(z.string()).nonempty(),
-      }),
+      })
     )
     .nonempty(),
 });
@@ -28,7 +28,7 @@ const CheckResourcesResponseSchema = z.object({
       z.object({
         resource: RequestResourceSchema.pick({ id: true, kind: true }),
         actions: z.record(z.string(), z.union([z.nativeEnum(Effect), z.boolean()])),
-      }),
+      })
     )
     .nonempty(),
 });
@@ -56,7 +56,7 @@ export class Kerberos {
       policies.map((policy) => {
         const handledPolicy = Kerberos.parsePolicy(policy);
         return [handledPolicy.kind, handledPolicy];
-      }),
+      })
     );
   }
 
@@ -66,7 +66,7 @@ export class Kerberos {
         roles?.map((role) => {
           const handledRole = Kerberos.parseDerivedRoles(role);
           return [handledRole.name, handledRole];
-        }),
+        })
       ) ?? new Map()
     );
   }
@@ -114,9 +114,7 @@ export class Kerberos {
         ...value,
         results: value.results.map((r) => ({
           ...r,
-          actions: Object.fromEntries(
-            Object.entries(r.actions).map(([action, effect]) => [action, !effectAsBoolean ? effect : effect === Effect.Allow]),
-          ),
+          actions: Object.fromEntries(Object.entries(r.actions).map(([action, effect]) => [action, !effectAsBoolean ? effect : effect === Effect.Allow])),
         })),
       };
     }).parse({ results });

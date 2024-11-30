@@ -1,4 +1,4 @@
-export default {
+export const resourcesPolicy = {
   expense1: {
     id: 'expense1',
     kind: 'expense',

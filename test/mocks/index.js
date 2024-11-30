@@ -1,3 +1,4 @@
-export { default as commonRolesPolicy } from './derrived_roles/common_roles.js';
-export { default as principalsPolicy } from './testdata/principals.js';
-export { default as resourcesPolicy } from './testdata/resources.js';
+export * from './derrived_roles/common_roles.js';
+export * from './testdata/principals.js';
+export * from './testdata/resources.js';
+export * from './expense_policy.js';

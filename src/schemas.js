@@ -23,6 +23,6 @@ export const RequestSchema = z
 export const ALL_ACTIONS = '*';
 
 export const Effect = {
-  Allow: 'Allow',
-  Deny: 'Deny',
+  Allow: 'EFFECT_ALLOW',
+  Deny: 'EFFECT_DENY',
 };

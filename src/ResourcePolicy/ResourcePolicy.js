@@ -1,11 +1,14 @@
 import { ResourcePolicyRootSchemaSchema } from './schemas.js';
 
 import { ALL_ACTIONS, Effect } from '../schemas.js';
-import { Variables } from '../Variables/Variables.js';
-import { Conditions } from '../Conditions/Conditions.js';
+import { Variables } from '../Variables/index.js';
+import { Conditions } from '../Conditions/index.js';
+import { Constants } from '../Constants/index.js';
 
 export class ResourcePolicy {
-  apiVersion = 'v1';
+  static parseConstants(constants) {
+    return constants instanceof Constants ? constants : new Constants(constants);
+  }
 
   static parseVariables(variables) {
     return variables instanceof Variables ? variables : new Variables(variables);
@@ -18,7 +21,9 @@ export class ResourcePolicy {
 
   constructor(schema) {
     this.schema = ResourcePolicyRootSchemaSchema.parse(schema);
-    if (this.schema.apiVersion !== this.apiVersion) throw new Error(`Unsupported API version: ${this.schema.apiVersion}`);
+    if (this.schema.resourcePolicy.constants) {
+      this.schema.resourcePolicy.constants = ResourcePolicy.parseConstants(this.schema.resourcePolicy.constants);
+    }
     if (this.schema.resourcePolicy.variables) {
       this.schema.resourcePolicy.variables = ResourcePolicy.parseVariables(this.schema.resourcePolicy.variables);
     }
@@ -45,48 +50,55 @@ export class ResourcePolicy {
     return { ...req, variables, V: variables };
   }
 
+  populateConstants(req) {
+    const constants = this.schema.resourcePolicy.constants?.get();
+    return { ...req, constants, C: constants };
+  }
+
   buildEffects(req, derivedRoles) {
     const result = new Map();
 
-    for (const rule of this.rules) {
-      if (!rule.actions.includes(ALL_ACTIONS) && !rule.actions.some((action) => req.actions.includes(action))) continue;
-      if (!rule.roles?.some((role) => req.P.roles.includes(role)) && !rule.derivedRoles?.some((role) => derivedRoles.has(role))) {
-        for (const action of rule.actions) result.set(action, Effect.Deny);
-        continue;
+    for (const action of req.actions) {
+      const actionEffects = [];
+
+      for (const rule of this.rules) {
+        // Checking if the rule applies to the action
+        if (!rule.actions.includes(ALL_ACTIONS) && !rule.actions.includes(action)) continue;
+
+        // Checking if the roles match
+        const rolesMatch = rule.roles?.some((role) => req.P.roles.includes(role)) ?? false;
+        const derivedRolesMatch = rule.derivedRoles?.some((role) => derivedRoles.has(role)) ?? false;
+
+        if (!rolesMatch && !derivedRolesMatch) continue;
+
+        // Checking the condition
+        const conditionPasses = rule.condition ? rule.condition.isFulfilled(req) : true;
+        if (conditionPasses) {
+          actionEffects.push(rule.effect);
+        } else {
+          // If the condition is not met, the effect is Deny.
+          actionEffects.push(Effect.Deny);
+        }
       }
 
-      if (rule.condition && !rule.condition.isFulfilled(req)) {
-        for (const action of rule.actions) result.set(action, rule.effect === Effect.Allow ? Effect.Deny : Effect.Allow);
-        continue;
+      if (actionEffects.includes(Effect.Allow)) {
+        result.set(action, Effect.Allow);
+      } else {
+        // If there are no rules allowing the action, the default is Deny
+        result.set(action, Effect.Deny);
       }
-
-      for (const action of rule.actions) result.set(action, rule.effect);
     }
 
     return result;
   }
 
   isAllowed(req, derivedRoles) {
-    // for (const rule of this.rules) {
-    //   if (!rule.actions.includes(ALL_ACTIONS) && !rule.actions.includes(req.action)) continue;
-    // eslint-disable-next-line max-len
-    //   if (!rule.roles?.some((role) => req.P.roles.includes(role)) && !rule.derivedRoles?.some((role) => derivedRoles.has(role))) {
-    //     continue;
-    //   }
-    //
-    //   if (!rule.condition) return rule.effect === Effect.Allow;
-    //   if (!rule.condition.isFulfilled(req)) continue;
-    //   return rule.effect === Effect.Allow;
-    // }
-    //
-    // return false;
-
-    const effects = this.buildEffects(this.populateVariables({ ...req, actions: [req.action] }), derivedRoles);
+    const effects = this.buildEffects(this.populateVariables(this.populateConstants({ ...req, actions: [req.action] })), derivedRoles);
     return effects.get(req.action) === Effect.Allow || effects.get(ALL_ACTIONS) === Effect.Allow;
   }
 
   // returns map of actions and effects
   check(req, derivedRoles) {
-    return this.buildEffects(this.populateVariables(req), derivedRoles);
+    return this.buildEffects(this.populateVariables(this.populateConstants(req)), derivedRoles);
   }
 }

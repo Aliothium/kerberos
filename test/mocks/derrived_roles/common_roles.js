@@ -1,4 +1,4 @@
-export default {
+export const commonRolesPolicy = {
   name: 'common_roles',
   description: 'Common dynamic roles used within the Finance Demo app',
   definitions: [
