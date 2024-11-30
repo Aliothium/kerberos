@@ -36,8 +36,7 @@
   },
   "homepage": "https://aliothium.com/",
   "dependencies": {
-    "zod": "^3.23.8",
-    "zod-to-json-schema": "^3.23.5"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
