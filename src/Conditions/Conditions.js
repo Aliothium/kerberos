@@ -2,30 +2,36 @@ import { z } from 'zod';
 
 import { ConditionSchemaSchema } from './schemas.js';
 
-export const matchStrategy = {
-  any: (conds, req) => conds.some((cond) => cond(req)),
-  all: (conds, req) => conds.every((cond) => cond(req)),
-};
-
 export class Conditions {
-  static strategies = {
-    match: {
-      any: (conds, req) => conds.some((cond) => cond(req)),
-      all: (conds, req) => conds.every((cond) => cond(req)),
-    },
-  };
-
   constructor(schema) {
     this.schema = ConditionSchemaSchema.parse(schema);
   }
 
-  isFulfilled(req) {
-    const [strategyKey] = Object.keys(this.schema);
-    if (typeof this.schema[strategyKey] === 'function') {
-      return this.schema[strategyKey](req);
+  evaluateCondition(cond, req) {
+    if (typeof cond === 'function') {
+      return cond(req);
     }
-    const [subStrategyKey] = Object.keys(this.schema[strategyKey]);
-    return Conditions.strategies[strategyKey][subStrategyKey](this.schema[strategyKey][subStrategyKey], req);
+
+    if (typeof cond === 'object') {
+      const [strategyKey] = Object.keys(cond);
+      const strategy = this.strategies[strategyKey];
+      if (!strategy) {
+        throw new Error(`Unknown strategy: ${strategyKey}`);
+      }
+      return strategy(cond[strategyKey], req);
+    }
+
+    throw new Error(`Invalid condition: ${cond}`);
+  }
+
+  strategies = {
+    any: (conds, req) => conds.some((cond) => this.evaluateCondition(cond, req)),
+    all: (conds, req) => conds.every((cond) => this.evaluateCondition(cond, req)),
+    none: (conds, req) => !conds.some((cond) => this.evaluateCondition(cond, req)),
+  };
+
+  isFulfilled(req) {
+    return this.evaluateCondition(this.schema.match, req);
   }
 }
 
