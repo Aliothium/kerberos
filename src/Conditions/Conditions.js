@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { ConditionSchemaSchema } from './schemas.js';
 
 export class Conditions {
+  strategies = {
+    any: (conds, req) => conds.some((cond) => this.evaluateCondition(cond, req)),
+    all: (conds, req) => conds.every((cond) => this.evaluateCondition(cond, req)),
+    none: (conds, req) => !conds.some((cond) => this.evaluateCondition(cond, req)),
+  };
+
   constructor(schema) {
     this.schema = ConditionSchemaSchema.parse(schema);
   }
@@ -23,12 +29,6 @@ export class Conditions {
 
     throw new Error(`Invalid condition: ${cond}`);
   }
-
-  strategies = {
-    any: (conds, req) => conds.some((cond) => this.evaluateCondition(cond, req)),
-    all: (conds, req) => conds.every((cond) => this.evaluateCondition(cond, req)),
-    none: (conds, req) => !conds.some((cond) => this.evaluateCondition(cond, req)),
-  };
 
   isFulfilled(req) {
     return this.evaluateCondition(this.schema.match, req);
