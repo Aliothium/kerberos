@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { RequestSchema } from '../schemas.js';
 
-export const VariablesReturnTypeSchema = z.union([z.boolean(), z.string(), z.number(), z.null()]);
+export const VariablesReturnTypeSchema = z.union([z.unknown()]);
 
 export const VariablesSchemaSchema = z.record(z.string(), z.function().args(RequestSchema).returns(VariablesReturnTypeSchema));
 
