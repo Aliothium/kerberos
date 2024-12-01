@@ -14,5 +14,6 @@ describe('ResourcesMock', () => {
     assert.strictEqual(resource.get('expense1').id, resourcesPolicy.expense1.id);
     assert.strictEqual(resource.get('expense1').kind, resourcesPolicy.expense1.kind);
     assert.deepEqual(resource.get('expense1').attr, resourcesPolicy.expense1.attr);
+    assert.deepEqual(resource.getById(resourcesPolicy.expense1.id).attr, resourcesPolicy.expense1.attr);
   });
 });
