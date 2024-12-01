@@ -134,6 +134,7 @@ export class Kerberos {
   }
 
   checkResources(args, effectAsBoolean) {
+    const inputForLog = [];
     const parsedArgs = CheckResourcesArgsSchema.parse(args);
     const results = parsedArgs.resources.map(({ resource, actions }) => {
       const req = Kerberos.parseRequest(parsedArgs.principal, resource);
@@ -150,10 +151,12 @@ export class Kerberos {
       const result = policy.check(reqWithActions, this.getImportedDerivedRoles(policy, req));
 
       const actionsResult = Object.fromEntries([...result.entries()]);
-      this.log([{ reqWithActions, result: actionsResult }], 'CheckResources');
+      inputForLog.push({ reqWithActions, result: actionsResult });
 
       return { resource, actions: actionsResult };
     });
+
+    this.log(inputForLog, 'CheckResources');
 
     return CheckResourcesResponseSchema.transform((value) => {
       return {
