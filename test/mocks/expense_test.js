@@ -39,7 +39,7 @@ export const expenseTestPolicy = {
           actions: {
             view: 'EFFECT_ALLOW',
             'view:approver': 'EFFECT_DENY',
-            delete: 'EFFECT_ALLOW',
+            delete: 'EFFECT_DENY',
             update: 'EFFECT_ALLOW',
             approve: 'EFFECT_DENY',
           },

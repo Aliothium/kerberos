@@ -58,7 +58,7 @@ export class KerberosTest {
     this.resources = this.schema.input.resources instanceof ResourcesMock ? [this.schema.input.resources] : [];
   }
 
-  run({ kerberos, principals, resources }) {
+  run({ kerberos, principals, resources, effectAsBoolean = false }) {
     describe(this.schema.name, () => {
       if (kerberos && !(kerberos instanceof Kerberos)) throw new Error('Invalid Kerberos instance!');
       if (principals && principals?.some((p) => !(p instanceof PrincipalsMock))) {
@@ -83,7 +83,7 @@ export class KerberosTest {
       const principalsMap = new Map(allPrincipalsMock.mocks.map((p) => [p.name, p]));
       const resourcesMap = new Map(allResourcesMock.mocks.map((r) => [r.name, r]));
 
-      // Grouping expected results by principals
+      // Group expected results by principals
       const expectedByPrincipal = new Map();
       for (const expectedItem of this.schema.expected) {
         const principalName =
@@ -110,7 +110,7 @@ export class KerberosTest {
 
         const principalData = expectedByPrincipal.get(principalName);
 
-        // Add the resource and actions to the resource list for this principal
+        // Add resource and actions to the principal's resources map
         if (!principalData.resources.has(resourceName)) {
           principalData.resources.set(resourceName, {
             resource,
@@ -128,11 +128,11 @@ export class KerberosTest {
 
       // For each principal, call checkResources once with all resources
       for (const [principalName, principalData] of expectedByPrincipal.entries()) {
-        const { principal, resources: resourcesMap } = principalData;
+        const { principal, resources: principalResourcesMap } = principalData;
 
         it(`should match expected actions for principal "${principalName}"`, () => {
           const resourcesToCheck = [];
-          for (const resourceData of resourcesMap.values()) {
+          for (const resourceData of principalResourcesMap.values()) {
             resourcesToCheck.push({
               resource: resourceData.resource,
               actions: Array.from(resourceData.actions),
@@ -144,17 +144,17 @@ export class KerberosTest {
               principal,
               resources: resourcesToCheck,
             },
-            true
+            effectAsBoolean
           );
 
-          // Checking the results
+          // Check results
           for (const result of results) {
-            const resource = resourcesMap.getById(result.resource.id);
+            const resource = allResourcesMock.getById(result.resource.id);
             if (!resource) {
               throw new Error(`Resource with ID "${result.resource.id}" not found!`);
             }
             const resourceName = resource.name;
-            const resourceData = resourcesMap.get(resourceName);
+            const resourceData = principalResourcesMap.get(resourceName);
 
             for (const [action, expectedEffect] of Object.entries(resourceData.expectedActions)) {
               const effect = result.actions[action];
@@ -162,12 +162,10 @@ export class KerberosTest {
                 effect !== undefined,
                 `Action "${action}" not found in the checked resources response for resource "${resourceName}"!`
               );
-              const expectedValue =
-                typeof expectedEffect === 'boolean' ? expectedEffect : expectedEffect === Effect.Allow;
               assert.strictEqual(
                 effect,
-                expectedValue,
-                `Action "${action}" effect for resource "${resourceName}" is not matched! Expected: ${expectedValue} but got: ${effect}`
+                expectedEffect,
+                `Action "${action}" effect for resource "${resourceName}" is not matched! Expected: ${expectedEffect} but got: ${effect}`
               );
             }
           }
