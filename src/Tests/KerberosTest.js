@@ -83,6 +83,8 @@ export class KerberosTest {
       const principalsMap = new Map(allPrincipalsMock.mocks.map((p) => [p.name, p]));
       const resourcesMap = new Map(allResourcesMock.mocks.map((r) => [r.name, r]));
 
+      // Grouping expected results by principals
+      const expectedByPrincipal = new Map();
       for (const expectedItem of this.schema.expected) {
         const principalName =
           expectedItem.principal instanceof PrincipalMock ? expectedItem.principal.name : expectedItem.principal;
@@ -99,38 +101,75 @@ export class KerberosTest {
           throw new Error(`Resource "${resourceName}" not found!`);
         }
 
-        const actionsToTest = Object.keys(expectedItem.actions);
+        if (!expectedByPrincipal.has(principalName)) {
+          expectedByPrincipal.set(principalName, {
+            principal,
+            resources: new Map(),
+          });
+        }
 
-        it(`should match expected actions [principal: "${principal.name}"; resource: "${resource.name}"]`, () => {
+        const principalData = expectedByPrincipal.get(principalName);
+
+        // Add the resource and actions to the resource list for this principal
+        if (!principalData.resources.has(resourceName)) {
+          principalData.resources.set(resourceName, {
+            resource,
+            actions: new Set(),
+            expectedActions: {},
+          });
+        }
+
+        const resourceData = principalData.resources.get(resourceName);
+        for (const [action, effect] of Object.entries(expectedItem.actions)) {
+          resourceData.actions.add(action);
+          resourceData.expectedActions[action] = effect;
+        }
+      }
+
+      // For each principal, call checkResources once with all resources
+      for (const [principalName, principalData] of expectedByPrincipal.entries()) {
+        const { principal, resources: resourcesMap } = principalData;
+
+        it(`should match expected actions for principal "${principalName}"`, () => {
+          const resourcesToCheck = [];
+          for (const resourceData of resourcesMap.values()) {
+            resourcesToCheck.push({
+              resource: resourceData.resource,
+              actions: Array.from(resourceData.actions),
+            });
+          }
+
           const { results } = kerberosInstance.checkResources(
             {
               principal,
-              resources: [
-                {
-                  resource,
-                  actions: actionsToTest,
-                },
-              ],
+              resources: resourcesToCheck,
             },
             true
           );
 
-          const result = results[0];
-          const actions = result.actions;
+          // Checking the results
+          for (const result of results) {
+            const resource = resourcesMap.getById(result.resource.id);
+            if (!resource) {
+              throw new Error(`Resource with ID "${result.resource.id}" not found!`);
+            }
+            const resourceName = resource.name;
+            const resourceData = resourcesMap.get(resourceName);
 
-          for (const [action, expectedEffect] of Object.entries(expectedItem.actions)) {
-            const effect = actions[action];
-            assert.ok(
-              effect !== undefined,
-              `Action "${action}" not found in the checked resources response!`
-            );
-            const expectedValue =
-              typeof expectedEffect === 'boolean' ? expectedEffect : expectedEffect === Effect.Allow;
-            assert.strictEqual(
-              effect,
-              expectedValue,
-              `Action "${action}" effect is not matched! Expected: ${expectedValue} but got: ${effect}`
-            );
+            for (const [action, expectedEffect] of Object.entries(resourceData.expectedActions)) {
+              const effect = result.actions[action];
+              assert.ok(
+                effect !== undefined,
+                `Action "${action}" not found in the checked resources response for resource "${resourceName}"!`
+              );
+              const expectedValue =
+                typeof expectedEffect === 'boolean' ? expectedEffect : expectedEffect === Effect.Allow;
+              assert.strictEqual(
+                effect,
+                expectedValue,
+                `Action "${action}" effect for resource "${resourceName}" is not matched! Expected: ${expectedValue} but got: ${effect}`
+              );
+            }
           }
         });
       }
