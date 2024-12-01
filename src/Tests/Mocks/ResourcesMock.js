@@ -1,17 +1,21 @@
-import { ResourceMock } from './ResourceMock.js';
+import { z } from 'zod';
+
+import { ResourceMock, ResourceMockSchema } from './ResourceMock.js';
+
+export const ResourcesMockSchema = z.union([z.array(z.instanceof(ResourceMock)).nonempty(), z.record(ResourceMockSchema.shape.name, ResourceMockSchema.omit({ name: true }))]);
 
 export class ResourcesMock {
-  static parse(resource) {
-    return resource instanceof ResourceMock ? resource : new ResourceMock(resource);
-  }
-
   constructor(resources) {
-    this.resources = new Map(
-      resources.map((R) => {
-        const RR = ResourcesMock.parse(R);
-        return [RR.name, RR];
-      }),
-    );
+    const parsedResources = ResourcesMockSchema.parse(resources);
+    this.resources = new Map();
+    if (Array.isArray(parsedResources)) {
+      parsedResources.forEach((resource) => this.resources.set(resource.name, resource));
+    } else {
+      Object.entries(parsedResources).forEach(([name, resource]) => {
+        const mock = new ResourceMock({ ...resource, name });
+        this.resources.set(mock.name, mock);
+      });
+    }
   }
 
   get mocks() {

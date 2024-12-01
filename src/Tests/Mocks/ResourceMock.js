@@ -2,11 +2,11 @@ import { z } from 'zod';
 
 import { RequestResourceSchema } from '../../schemas.js';
 
-export const ResourceMockSchema = RequestResourceSchema.extend({ name: z.string().optional() });
+export const ResourceMockSchema = RequestResourceSchema.extend({ name: z.string() });
 
 export class ResourceMock {
   constructor(schema) {
-    this.schema = RequestResourceSchema.parse(schema);
+    this.schema = ResourceMockSchema.parse(schema);
   }
 
   get id() {
@@ -14,7 +14,7 @@ export class ResourceMock {
   }
 
   get name() {
-    return this.schema.name || this.schema.id;
+    return this.schema.name;
   }
 
   get kind() {

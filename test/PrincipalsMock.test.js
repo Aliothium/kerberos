@@ -11,8 +11,8 @@ describe('PrincipalsMock', () => {
 
     assert.strictEqual(principal.mocks.length, 7);
     assert.strictEqual(principal.get('sally').name, 'sally');
-    assert.strictEqual(principal.get('sally').id, 'sally');
-    assert.deepEqual(principal.get('sally').roles, ['USER']);
-    assert.deepEqual(principal.get('sally').attr, { department: 'SALES', region: 'EMEA' });
+    assert.strictEqual(principal.get('sally').id, principalsPolicy.sally.id);
+    assert.deepEqual(principal.get('sally').roles, principalsPolicy.sally.roles);
+    assert.deepEqual(principal.get('sally').attr, principalsPolicy.sally.attr);
   });
 });

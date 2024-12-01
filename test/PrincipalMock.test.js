@@ -9,9 +9,9 @@ describe('PrincipalMock', () => {
   it('should parse schema correctly', () => {
     const principal = new PrincipalMock({ ...principalsPolicy.sally, name: 'sally' });
 
-    assert.strictEqual(principal.id, 'sally');
+    assert.strictEqual(principal.id, principalsPolicy.sally.id);
     assert.strictEqual(principal.name, 'sally');
-    assert.deepEqual(principal.roles, ['USER']);
-    assert.deepEqual(principal.attr, { department: 'SALES', region: 'EMEA' });
+    assert.deepEqual(principal.roles, principalsPolicy.sally.roles);
+    assert.deepEqual(principal.attr, principalsPolicy.sally.attr);
   });
 });
