@@ -1,7 +1,11 @@
+import { PrincipalsMock, ResourcesMock } from '../../src/Tests/index.js';
+import { principalsPolicy } from './testdata/principals.js';
+import { resourcesPolicy } from './testdata/resources.js';
+
 export const expenseTestPolicy = {
   name: 'Expenses test suite',
-  principals: ['sally', 'sydney', 'mark', 'simon', 'frank', 'derek'],
-  resources: ['expense1', 'expense2', 'expense3', 'expense4', 'expense5'],
+  principals: new PrincipalsMock(principalsPolicy),
+  resources: new ResourcesMock(resourcesPolicy),
   tests: [
     {
       name: 'Sales Roles',

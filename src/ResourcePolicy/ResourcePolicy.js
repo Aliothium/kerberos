@@ -75,13 +75,15 @@ export class ResourcePolicy {
         const conditionPasses = rule.condition ? rule.condition.isFulfilled(req) : true;
         if (conditionPasses) {
           actionEffects.push(rule.effect);
-        } else {
+        } else if (rule.effect === Effect.Allow) {
           // If the condition is not met, the effect is Deny.
           actionEffects.push(Effect.Deny);
         }
       }
 
-      if (actionEffects.includes(Effect.Allow)) {
+      if (actionEffects.includes(Effect.Deny)) {
+        result.set(action, Effect.Deny);
+      } else if (actionEffects.includes(Effect.Allow)) {
         result.set(action, Effect.Allow);
       } else {
         // If there are no rules allowing the action, the default is Deny

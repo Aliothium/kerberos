@@ -183,7 +183,7 @@ describe('ResourcePolicy', () => {
 
     it('should return map of actions and effects (Frank)', () => {
       const principal = principalsPolicy.frank;
-      const resource = resourcesPolicy.expense1;
+      const resource = resourcesPolicy.expense3;
       const actions = ['view', 'create', 'approve', 'view:approver', 'delete', 'update'];
 
       const req = { P: principal, principal, R: resource, resource, actions };
@@ -193,7 +193,7 @@ describe('ResourcePolicy', () => {
       assert.deepStrictEqual(Object.fromEntries(effects), {
         view: Effect.Allow,
         create: Effect.Allow,
-        approve: Effect.Allow,
+        approve: Effect.Deny,
         'view:approver': Effect.Allow,
         delete: Effect.Deny,
         update: Effect.Deny,
