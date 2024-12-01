@@ -149,12 +149,12 @@ export class KerberosTest {
             );
             for (const [action, expectedEffect] of Object.entries(expectedActions)) {
               const effect = actions.get(action);
-              // assert.ok(effect !== undefined, `Action "${action}" not found in the checked resources response!`);
-              // assert.strictEqual(
-              //   effect,
-              //   expectedEffect,
-              //   `Action "${action}" effect is not matched! Expected: ${expectedEffect} but got: ${effect}`,
-              // );
+              assert.ok(effect !== undefined, `Action "${action}" not found in the checked resources response!`);
+              assert.strictEqual(
+                effect,
+                expectedEffect,
+                `Action "${action}" effect is not matched! Expected: ${expectedEffect} but got: ${effect}`,
+              );
             }
           });
         }
