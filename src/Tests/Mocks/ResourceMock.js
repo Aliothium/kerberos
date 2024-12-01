@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { RequestResourceSchema } from '../schemas.js';
+import { RequestResourceSchema } from '../../schemas.js';
 
 export const ResourceMockSchema = RequestResourceSchema.extend({ name: z.string().optional() });
 

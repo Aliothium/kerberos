@@ -10,7 +10,7 @@ export class PrincipalsMock {
       principals.map((P) => {
         const PP = PrincipalsMock.parse(P);
         return [PP.name, PP];
-      }),
+      })
     );
   }
 

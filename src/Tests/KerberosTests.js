@@ -4,10 +4,7 @@ import { describe } from 'node:test';
 
 import { Kerberos } from '../Kerberos.js';
 import { KerberosTest, KerberosTestSchema } from './KerberosTest.js';
-import { ResourcesMock } from '../Mocks/ResourcesMock.js';
-import { ResourceMockSchema } from '../Mocks/ResourceMock.js';
-import { PrincipalsMock } from '../Mocks/PrincipalsMock.js';
-import { PrincipalMockSchema } from '../Mocks/PrincipalMock.js';
+import { ResourcesMock, ResourceMockSchema, PrincipalsMock, PrincipalMockSchema } from './Mocks/index.js';
 
 const TestsPolicySchema = z
   .object({

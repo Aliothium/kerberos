@@ -3,10 +3,7 @@ import { z } from 'zod';
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
 
-import { ResourceMock } from '../Mocks/ResourceMock.js';
-import { ResourcesMock } from '../Mocks/ResourcesMock.js';
-import { PrincipalMock } from '../Mocks/PrincipalMock.js';
-import { PrincipalsMock } from '../Mocks/PrincipalsMock.js';
+import { ResourceMock, ResourcesMock, PrincipalMock, PrincipalsMock } from './Mocks/index.js';
 import { Effect } from '../schemas.js';
 import { Kerberos } from '../Kerberos.js';
 
@@ -73,8 +70,7 @@ export class KerberosTest {
   }) {
     describe(this.schema.name, () => {
       if (kerberos && !(kerberos instanceof Kerberos)) throw new Error('Invalid Kerberos instance!');
-      if (principals && principals?.some((p) => !(p instanceof PrincipalsMock)))
-        throw new Error('Invalid PrincipalsMock instance!');
+      if (principals && principals?.some((p) => !(p instanceof PrincipalsMock))) { throw new Error('Invalid PrincipalsMock instance!'); }
       if (resources && resources?.some((r) => !(r instanceof ResourcesMock))) throw new Error('Invalid ResourcesMock instance!');
 
       const kerberosInstance = this.kerberos || kerberos;
@@ -92,29 +88,31 @@ export class KerberosTest {
         this.schema.input.principals instanceof PrincipalsMock
           ? allImportedPrincipalsMock
           : new PrincipalsMock([
-              ...allImportedPrincipalsMock.mocks,
-              ...this.schema.input.principals.map((p) => allImportedPrincipalsMock.get(p)).filter((p) => !!p),
-            ]);
+            ...allImportedPrincipalsMock.mocks,
+            ...this.schema.input.principals.map((p) => allImportedPrincipalsMock.get(p)).filter((p) => !!p),
+          ]);
       const allInputResources =
         this.schema.input.resources instanceof ResourcesMock
           ? allImportedResourcesMock
           : new ResourcesMock([
-              ...allImportedResourcesMock.mocks,
-              ...this.schema.input.resources.map((r) => allImportedResourcesMock.get(r)).filter((r) => !!r),
-            ]);
+            ...allImportedResourcesMock.mocks,
+            ...this.schema.input.resources.map((r) => allImportedResourcesMock.get(r)).filter((r) => !!r),
+          ]);
 
       const expectedActionByKey = new Map(
         this.schema.expected.map((item) => {
           const principal = item.principal instanceof PrincipalMock ? item.principal : allInputPrincipals.get(item.principal);
           const resource = item.resource instanceof ResourceMock ? item.resource : allInputResources.get(item.resource);
-          if (!principal)
+          if (!principal) {
             throw new Error(
-              `Principal "${item.principal instanceof PrincipalMock ? item.principal.name : item.principal}" not found!`,
+              `Principal "${item.principal instanceof PrincipalMock ? item.principal.name : item.principal}" not found!`
             );
-          if (!resource)
+          }
+          if (!resource) {
             throw new Error(
-              `Resource "${item.resource instanceof ResourceMock ? item.resource.name : item.resource}" not found!`,
+              `Resource "${item.resource instanceof ResourceMock ? item.resource.name : item.resource}" not found!`
             );
+          }
 
           return [
             `${principal.name}:${resource.name}`,
@@ -122,10 +120,10 @@ export class KerberosTest {
               Object.entries(item.actions).map(([action, effect]) => [
                 action,
                 typeof effect === 'boolean' ? effect : effect === Effect.Allow,
-              ]),
+              ])
             ),
           ];
-        }),
+        })
       );
 
       for (const principal of allInputPrincipals.mocks) {
@@ -137,7 +135,7 @@ export class KerberosTest {
               actions: [...this.schema.input.actions],
             })),
           },
-          true,
+          true
         );
         for (const result of results) {
           const actions = new Map(Object.entries(result.actions));
@@ -147,7 +145,7 @@ export class KerberosTest {
             const expectedActions = expectedActionByKey.get(`${principal.name}:${resource.name}`);
             assert.ok(
               expectedActions,
-              `Expected actions not found for [principal: "${principal.name}"; resource: "${resource.name}"]`,
+              `Expected actions not found for [principal: "${principal.name}"; resource: "${resource.name}"]`
             );
             for (const [action, expectedEffect] of Object.entries(expectedActions)) {
               const effect = actions.get(action);
