@@ -2,14 +2,11 @@ import { z } from 'zod';
 
 import { RequestPrincipalSchema } from '../../schemas.js';
 
-export const PrincipalMockSchema = z.record(z.string(), RequestPrincipalSchema);
+export const PrincipalMockSchema = RequestPrincipalSchema.extend({ name: z.string() });
 
 export class PrincipalMock {
   constructor(schema) {
-    const schemaEntries = Object.entries(PrincipalMockSchema.parse(schema));
-    const [name, parsedSchema] = schemaEntries[0];
-    this.schema = parsedSchema;
-    this.schema.name = name;
+    this.schema = PrincipalMockSchema.parse(schema);
   }
 
   get id() {

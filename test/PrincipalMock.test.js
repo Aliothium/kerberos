@@ -6,8 +6,8 @@ import { principalsPolicy } from './mocks/index.js';
 import { PrincipalMock } from '../src/Tests/index.js';
 
 describe('PrincipalMock', () => {
-  it('should parse schema', () => {
-    const principal = new PrincipalMock({ sally: principalsPolicy.sally });
+  it('should parse schema correctly', () => {
+    const principal = new PrincipalMock({ ...principalsPolicy.sally, name: 'sally' });
 
     assert.strictEqual(principal.id, 'sally');
     assert.strictEqual(principal.name, 'sally');
