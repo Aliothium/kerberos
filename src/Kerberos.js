@@ -133,7 +133,7 @@ export class Kerberos {
     return isAllowed;
   }
 
-  checkResources(args, effectAsBoolean) {
+  checkResources(args, effectAsBoolean = false) {
     const inputForLog = [];
     const parsedArgs = CheckResourcesArgsSchema.parse(args);
     const results = parsedArgs.resources.map(({ resource, actions }) => {
