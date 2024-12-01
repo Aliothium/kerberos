@@ -6,7 +6,7 @@ import { commonRolesPolicy, principalsPolicy, resourcesPolicy, expensePolicy } f
 import { Effect, Kerberos } from '../src/index.js';
 
 describe('Kerberos', () => {
-  const kerberos = new Kerberos([expensePolicy], [commonRolesPolicy]);
+  const kerberos = new Kerberos([expensePolicy], [commonRolesPolicy], { logger: true });
 
   describe('isAllowed', () => {
     it('should return true if the action is allowed', () => {

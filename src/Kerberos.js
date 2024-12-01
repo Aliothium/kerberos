@@ -33,6 +33,7 @@ const CheckResourcesResponseSchema = z.object({
     .nonempty(),
 });
 
+// TODO: 1) outputs, 2) scopes, 3) metadata
 export class Kerberos {
   static parsePolicy(policy) {
     return policy instanceof ResourcePolicy ? ResourcePolicyInstanceSchema.parse(policy) : new ResourcePolicy(policy);
@@ -46,9 +47,15 @@ export class Kerberos {
     return RequestSchema.parse({ principal, resource, P: principal, R: resource });
   }
 
-  constructor(policies, derivedRoles) {
+  #logger = console;
+
+  #loggingEnabled = false;
+
+  constructor(policies, derivedRoles, { logger } = { logger: false }) {
     this.policies = this.getPoliciesMap(policies);
     this.derivedRoles = this.getDerivedRolesMap(derivedRoles);
+    if (typeof logger === 'object') this.#logger = logger;
+    if (logger) this.#loggingEnabled = true;
   }
 
   getPoliciesMap(policies) {
@@ -78,6 +85,42 @@ export class Kerberos {
       .reduce((acc, curr) => new Set([...acc, ...curr.get(req)]), new Set());
   }
 
+  #buildLogData(input, reqKind) {
+    return input.flatMap(({ reqWithActions, result }) =>
+      reqWithActions.actions.map((action) => ({
+        Timestamp: new Date().toISOString(),
+        'Request kind': reqKind,
+        'Principal ID': reqWithActions.P.id,
+        'Resource kind': reqWithActions.R.kind,
+        'Resource ID': reqWithActions.R.id,
+        Action: action,
+        Effect: result[action],
+      }))
+    );
+  }
+
+  log(input, reqKind) {
+    if (!this.#loggingEnabled) return;
+
+    this.#logger.group?.('Kerberos.js');
+
+    if (reqKind === 'IsAllowed') {
+      const [{ reqWithActions, result }] = input;
+      const [action] = reqWithActions.actions;
+      const effect = result[action];
+      this.#logger.log?.(`Principal ${reqWithActions.P.id} is ${effect === Effect.Allow ? 'ALLOWED' : 'DENIED'} to perform action ${action} on resource ${reqWithActions.R.id}`);
+    }
+
+    const debugData = this.#buildLogData(input, reqKind);
+    if (this.#logger.table) {
+      this.#logger.table?.(debugData);
+    } else {
+      this.#logger.debug?.(`Kerberos.js request log: ${JSON.stringify(debugData, null, 2)}`);
+    }
+
+    this.#logger.groupEnd?.();
+  }
+
   isAllowed(args) {
     const parsedArgs = IsAllowedArgsSchema.parse(args);
     const req = Kerberos.parseRequest(parsedArgs.principal, parsedArgs.resource);
@@ -85,7 +128,9 @@ export class Kerberos {
     const policy = this.policies.get(req.R.kind);
     if (!policy) return false;
 
-    return policy.isAllowed({ ...req, action: parsedArgs.action }, this.getImportedDerivedRoles(policy, req));
+    const isAllowed = policy.isAllowed({ ...req, action: parsedArgs.action }, this.getImportedDerivedRoles(policy, req));
+    this.log([{ reqWithActions: { ...req, actions: [parsedArgs.action] }, result: { [parsedArgs.action]: isAllowed ? Effect.Allow : Effect.Deny } }], 'IsAllowed');
+    return isAllowed;
   }
 
   checkResources(args, effectAsBoolean) {
@@ -101,12 +146,13 @@ export class Kerberos {
         };
       }
 
-      const actionsResult = policy.check({ ...req, actions }, this.getImportedDerivedRoles(policy, req));
+      const reqWithActions = { ...req, actions };
+      const result = policy.check(reqWithActions, this.getImportedDerivedRoles(policy, req));
 
-      return {
-        resource,
-        actions: Object.fromEntries([...actionsResult.entries()]),
-      };
+      const actionsResult = Object.fromEntries([...result.entries()]);
+      this.log([{ reqWithActions, result: actionsResult }], 'CheckResources');
+
+      return { resource, actions: actionsResult };
     });
 
     return CheckResourcesResponseSchema.transform((value) => {
